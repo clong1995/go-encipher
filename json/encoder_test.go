@@ -1,18 +1,14 @@
-package gob
+package json
 
-import (
-	"bytes"
-	"io"
-	"testing"
-)
+import "testing"
 
 func TestEncoder(t *testing.T) {
 
-	var buf bytes.Buffer
+	var jsonData []byte
 
 	type args struct {
-		in     any
-		writer io.Writer
+		in   any
+		data *[]byte
 	}
 	tests := []struct {
 		name    string
@@ -20,23 +16,22 @@ func TestEncoder(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "gob编码",
+			name: "编码数据为json",
 			args: args{
-				in: student{
+				in: &student{
 					Name: "小明",
 					Age:  18,
 				},
-				writer: &buf,
+				data: &jsonData,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := Encoder(tt.args.in, tt.args.writer)
-			if (err != nil) != tt.wantErr {
+			if err := Encoder(tt.args.in, tt.args.data); (err != nil) != tt.wantErr {
 				t.Errorf("Encoder() error = %v, wantErr %v", err, tt.wantErr)
-				return
 			}
+			t.Logf("Encoder() result = %s", jsonData)
 		})
 	}
 }

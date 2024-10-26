@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-// Decode 解码josn
+// Decode 解码json
 // data 二进制数据
 // out 接收结果的指针
 func Decode(data []byte, out any) (err error) {

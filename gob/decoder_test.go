@@ -8,14 +8,17 @@ import (
 
 func TestDecode(t *testing.T) {
 
-	//先编码一份数据
-	var buf bytes.Buffer
-	err := Encoder(student{Name: "小明", Age: 18}, &buf)
+	var encoderBuf bytes.Buffer
+
+	//先编码一份测试数据
+	err := Encoder(student{Name: "小明", Age: 18}, &encoderBuf)
 	if err != nil {
 		t.Errorf("Encoder() error = %v", err)
 		return
 	}
-	encoderData := buf.Bytes()
+	encoderData := encoderBuf.Bytes()
+
+	var s student
 
 	//测试
 	type args struct {
@@ -44,5 +47,3 @@ func TestDecode(t *testing.T) {
 		})
 	}
 }
-
-var s student
