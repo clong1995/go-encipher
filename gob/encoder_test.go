@@ -22,7 +22,7 @@ func TestEncoder(t *testing.T) {
 		{
 			name: "gob编码",
 			args: args{
-				in: student{
+				in: &student{
 					Name: "小明",
 					Age:  18,
 				},
@@ -37,6 +37,7 @@ func TestEncoder(t *testing.T) {
 				t.Errorf("Encoder() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			t.Logf("Encoder() result = %s", buf.Bytes())
 		})
 	}
 }

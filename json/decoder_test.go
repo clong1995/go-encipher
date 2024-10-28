@@ -1,27 +1,31 @@
 package json
 
 import (
+	"bytes"
+	"io"
 	"testing"
 )
 
 func TestDecode(t *testing.T) {
-	var encodeData []byte
+	var encoderBuf bytes.Buffer
 
 	//生成编码的测试数据
-	err := Encoder(&student{
-		Name: "小明",
-		Age:  18,
-	}, &encodeData)
+	err := Encoder(
+		&student{Name: "小明", Age: 18},
+		&encoderBuf,
+	)
 	if err != nil {
-		t.Log(err)
+		t.Errorf("Encoder() error = %v", err)
 		return
 	}
+
+	encoderData := encoderBuf.Bytes()
 
 	var s student
 
 	type args struct {
-		data []byte
-		out  any
+		reader io.Reader
+		out    any
 	}
 	tests := []struct {
 		name    string
@@ -31,14 +35,14 @@ func TestDecode(t *testing.T) {
 		{
 			name: "解码json",
 			args: args{
-				data: encodeData,
-				out:  &s,
+				reader: bytes.NewBuffer(encoderData),
+				out:    &s,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err = Decode(tt.args.data, tt.args.out); (err != nil) != tt.wantErr {
+			if err = Decode(tt.args.reader, tt.args.out); (err != nil) != tt.wantErr {
 				t.Errorf("Decode() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			t.Logf("Decode() result = %v", s)

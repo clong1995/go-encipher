@@ -7,7 +7,7 @@ import (
 )
 
 // Encoder 编码gob
-// in 要编码的数据
+// in 要编码的数据的指针
 // writer 接收结果的指针
 // data := writer.Bytes() 可以将流转 []byte
 // 将 w http.ResponseWriter 传入writer，可直接写入http响应流

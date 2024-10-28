@@ -11,7 +11,10 @@ func TestDecode(t *testing.T) {
 	var encoderBuf bytes.Buffer
 
 	//先编码一份测试数据
-	err := Encoder(student{Name: "小明", Age: 18}, &encoderBuf)
+	err := Encoder(
+		student{Name: "小明", Age: 18},
+		&encoderBuf,
+	)
 	if err != nil {
 		t.Errorf("Encoder() error = %v", err)
 		return
