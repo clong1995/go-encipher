@@ -37,7 +37,7 @@ func TestEncoder(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := Encoder(tt.args.in, tt.args.writer); (err != nil) != tt.wantErr {
+			if err := Encode(tt.args.in, tt.args.writer); (err != nil) != tt.wantErr {
 				t.Errorf("Encoder() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			t.Logf("Encoder() result = %s", buf.Bytes())

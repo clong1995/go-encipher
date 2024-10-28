@@ -12,12 +12,8 @@ import (
 // bytes.NewBuffer(encoderData) 可以将encoderData二进制转流
 // 将 r *http.Request reader,可直接解http请求流
 func Decode(reader io.Reader, out any) (err error) {
-	data, err := io.ReadAll(reader)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	if err = json.Unmarshal(data, out); err != nil {
+	decoder := json.NewDecoder(reader)
+	if err = decoder.Decode(out); err != nil {
 		log.Println(err)
 		return
 	}

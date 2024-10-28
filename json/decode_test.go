@@ -10,7 +10,7 @@ func TestDecode(t *testing.T) {
 	var encoderBuf bytes.Buffer
 
 	//生成编码的测试数据
-	err := Encoder(
+	err := Encode(
 		&student{Name: "小明", Age: 18},
 		&encoderBuf,
 	)
