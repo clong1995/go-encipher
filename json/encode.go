@@ -13,7 +13,6 @@ import (
 // 将 w http.ResponseWriter 传入writer，可直接写入http响应流
 func Encode(in any, writer io.Writer) (err error) {
 	encoder := json.NewEncoder(writer)
-	encoder.SetEscapeHTML(false)
 	if err = encoder.Encode(in); err != nil {
 		log.Println(err)
 		return
