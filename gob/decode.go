@@ -13,7 +13,7 @@ import (
 // 将 r *http.Request reader,可直接解http请求流
 func Decode(reader io.Reader, out any) (err error) {
 	decoder := gob.NewDecoder(reader)
-	if err = decoder.Decode(out); err != nil {
+	if err = decoder.Decode(out); err != nil && err != io.EOF {
 		log.Println(err)
 		return
 	}
