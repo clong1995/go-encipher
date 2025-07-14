@@ -22,7 +22,7 @@ func TestEncoder(t *testing.T) {
 		{
 			name: "gob编码",
 			args: args{
-				in: student{
+				in: &student{
 					Name: "小明",
 					Age:  18,
 				},
@@ -32,11 +32,12 @@ func TestEncoder(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := Encoder(tt.args.in, tt.args.writer)
+			err := Encode(tt.args.in, tt.args.writer)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Encoder() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			t.Logf("Encoder() result = %s", buf.Bytes())
 		})
 	}
 }
