@@ -1,8 +1,14 @@
 package aes
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestDecrypt(t *testing.T) {
+	/*b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, uint64(160862117003087871))
+	*/
+
 	type args struct {
 		cipherText string
 		key        []byte
@@ -15,7 +21,7 @@ func TestDecrypt(t *testing.T) {
 		{
 			name: "解密测试",
 			args: args{
-				cipherText: "u3OHOgpzWdaZOiy+yriuNw==",
+				cipherText: "zhFguxJBpAIkvT1Aac8j/OfFBtmUD+sw5OY1QGdkBo9KHWimY9AQ4PaLCH4OXkNsIK384128zo2ML173TdpARv5pi81h",
 				key:        []byte("123456789"),
 			},
 		},
@@ -33,6 +39,9 @@ func TestDecrypt(t *testing.T) {
 }
 
 func TestEncrypt(t *testing.T) {
+	/*b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, uint64(160862117003087872))*/
+
 	type args struct {
 		plainText []byte
 		key       []byte
@@ -45,7 +54,7 @@ func TestEncrypt(t *testing.T) {
 		{
 			name: "加密测试",
 			args: args{
-				plainText: []byte("hello world"),
+				plainText: []byte("AFAlWJ1nRwIAoO6V2-aCBA2025-11-08 22:18:39"),
 				key:       []byte("123456789"),
 			},
 		},
