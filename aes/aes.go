@@ -5,7 +5,6 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
-	"encoding/base64"
 	"errors"
 	"io"
 	"log"
@@ -19,7 +18,7 @@ func DeriveKey(password []byte) []byte {
 }
 
 // Encrypt 使用 AES-GCM 加密，返回 base64(nonce|ciphertext)
-func Encrypt(plain, password []byte) (cipherText string, err error) {
+func Encrypt(plainIn, password []byte) (cipherOut []byte, err error) {
 	key := DeriveKey(password)
 
 	block, err := aes.NewCipher(key)
@@ -39,19 +38,19 @@ func Encrypt(plain, password []byte) (cipherText string, err error) {
 		return
 	}
 
-	cipherByte := aead.Seal(nil, nonce, plain, nil)
-	out := append(nonce, cipherByte...)
-	cipherText = base64.StdEncoding.EncodeToString(out)
+	cipherByte := aead.Seal(nil, nonce, plainIn, nil)
+	cipherOut = append(nonce, cipherByte...)
+	//cipherText = base64.StdEncoding.EncodeToString(out)
 	return
 }
 
 // Decrypt 解密 base64(nonce|ciphertext)，返回明文
-func Decrypt(encoded string, password []byte) (plainText string, err error) {
-	data, err := base64.StdEncoding.DecodeString(encoded)
+func Decrypt(encodedIn []byte, password []byte) (plainOut []byte, err error) {
+	/*data, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
 		log.Println(err)
 		return
-	}
+	}*/
 
 	key := DeriveKey(password)
 	block, err := aes.NewCipher(key)
@@ -66,19 +65,18 @@ func Decrypt(encoded string, password []byte) (plainText string, err error) {
 	}
 
 	nonceSize := aead.NonceSize()
-	if len(data) < nonceSize {
+	if len(encodedIn) < nonceSize {
 		err = errors.New("ciphertext too short")
 		log.Println(err)
 		return
 	}
 
-	nonce, cipherText := data[:nonceSize], data[nonceSize:]
-	plain, err := aead.Open(nil, nonce, cipherText, nil)
+	nonce, cipherText := encodedIn[:nonceSize], encodedIn[nonceSize:]
+	plainOut, err = aead.Open(nil, nonce, cipherText, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	plainText = string(plain)
 
 	return
 }
