@@ -5,47 +5,44 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
-	"errors"
 	"io"
-	"log"
+
+	"github.com/pkg/errors"
 )
 
-// DeriveKey 将任意长度密码转为 32 字节 AES 密钥（AES-256）
-// 若密码是用户输入的口令，请在上层结合 scrypt/argon2 做强 KDF。
+// DeriveKey insecurely turns a password of any length into a 32-byte AES key (AES-256).
+// WARNING: This is not a secure Key Derivation Function (KDF).
+// If the password is user-supplied, use a strong KDF like scrypt or Argon2 instead.
 func DeriveKey(password []byte) []byte {
 	sum := sha256.Sum256(password)
 	return sum[:]
 }
 
-// Encrypt 使用 AES-GCM 加密，返回 base64(nonce|ciphertext)
-func Encrypt(plainIn, password []byte) (cipherOut []byte, err error) {
+// Encrypt encrypts data using AES-GCM and returns the nonce prepended to the ciphertext.
+func Encrypt(plainIn, password []byte) ([]byte, error) {
 	key := DeriveKey(password)
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		log.Println(err)
-		return
+		return nil, errors.Wrap(err, "failed to create new cipher")
 	}
 	aead, err := cipher.NewGCM(block)
 	if err != nil {
-		log.Println(err)
-		return
+		return nil, errors.Wrap(err, "failed to create new GCM")
 	}
 
 	nonce := make([]byte, aead.NonceSize())
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-		log.Println(err)
-		return
+		return nil, errors.Wrap(err, "failed to read nonce")
 	}
 
 	cipherByte := aead.Seal(nil, nonce, plainIn, nil)
-	cipherOut = append(nonce, cipherByte...)
-	//cipherText = base64.StdEncoding.EncodeToString(out)
-	return
+	cipherOut := append(nonce, cipherByte...)
+	return cipherOut, nil
 }
 
-// Decrypt 解密 base64(nonce|ciphertext)，返回明文
-func Decrypt(encodedIn []byte, password []byte) (plainOut []byte, err error) {
+// Decrypt decrypts data (nonce|ciphertext) that was encrypted with Encrypt.
+func Decrypt(encodedIn []byte, password []byte) ([]byte, error) {
 	/*data, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
 		log.Println(err)
@@ -55,28 +52,23 @@ func Decrypt(encodedIn []byte, password []byte) (plainOut []byte, err error) {
 	key := DeriveKey(password)
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		log.Println(err)
-		return
+		return nil, errors.Wrap(err, "failed to create new cipher")
 	}
 	aead, err := cipher.NewGCM(block)
 	if err != nil {
-		log.Println(err)
-		return
+		return nil, errors.Wrap(err, "failed to create new GCM")
 	}
 
 	nonceSize := aead.NonceSize()
 	if len(encodedIn) < nonceSize {
-		err = errors.New("ciphertext too short")
-		log.Println(err)
-		return
+		return nil, errors.New("ciphertext too short")
 	}
 
 	nonce, cipherText := encodedIn[:nonceSize], encodedIn[nonceSize:]
-	plainOut, err = aead.Open(nil, nonce, cipherText, nil)
+	plainOut, err := aead.Open(nil, nonce, cipherText, nil)
 	if err != nil {
-		log.Println(err)
-		return
+		return nil, errors.Wrap(err, "failed to open cipher text")
 	}
 
-	return
+	return plainOut, nil
 }
