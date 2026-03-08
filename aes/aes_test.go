@@ -1,79 +1,64 @@
 package aes
 
 import (
-	"encoding/base64"
-	"log"
+	"bytes"
 	"testing"
 )
 
-func TestDecrypt(t *testing.T) {
-	/*b := make([]byte, 8)
-	binary.LittleEndian.PutUint64(b, uint64(160862117003087871))
-	*/
-
-	encodedIn, err := base64.StdEncoding.DecodeString("+dydQ7XR5CpHvT2K1tv/aQCi4Ver0vq/4OHmuhHObGWrmFmv2gfaokKq2ZQHhoqy5nsLVukolZWFONrsOttRhYb90xtW")
+func TestEncipher_Success(t *testing.T) {
+	password := []byte("123456789")
+	encipher, err := NewEncipher(password)
 	if err != nil {
-		log.Println(err)
-		return
+		t.Fatalf("Failed to create encipher: %v", err)
 	}
 
-	type args struct {
-		encodedIn []byte
-		password  []byte
+	plainText := []byte("AFAlWJ1nRwIAoO6V2-aCBA2025-11-08 22:18:39")
+
+	// Encrypt
+	cipherText, err := encipher.Encrypt(plainText)
+	if err != nil {
+		t.Fatalf("Encryption failed: %v", err)
 	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "解密测试",
-			args: args{
-				encodedIn: encodedIn,
-				password:  []byte("123456789"),
-			},
-		},
+
+	// Decrypt
+	decryptedText, err := encipher.Decrypt(cipherText)
+	if err != nil {
+		t.Fatalf("Decryption failed: %v", err)
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var plainOut []byte
-			if plainOut, err = Decrypt(tt.args.encodedIn, tt.args.password); (err != nil) != tt.wantErr {
-				t.Errorf("Decrypt() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			gotPlainText := string(plainOut)
-			t.Logf("gotPlainText: %s", gotPlainText)
-		})
+
+	// Verify
+	if !bytes.Equal(plainText, decryptedText) {
+		t.Errorf("Decrypted text does not match original text. got %q, want %q", decryptedText, plainText)
 	}
 }
 
-func TestEncrypt(t *testing.T) {
-	type args struct {
-		plainIn  []byte
-		password []byte
+func TestEncipher_DecryptFailsWithWrongPassword(t *testing.T) {
+	correctPassword := []byte("correct-password")
+	wrongPassword := []byte("wrong-password")
+
+	// Create encipher with the correct password
+	encipher, err := NewEncipher(correctPassword)
+	if err != nil {
+		t.Fatalf("Failed to create encipher: %v", err)
 	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "加密测试",
-			args: args{
-				plainIn:  []byte("AFAlWJ1nRwIAoO6V2-aCBA2025-11-08 22:18:39"),
-				password: []byte("123456789"),
-			},
-		},
+
+	plainText := []byte("this is a secret message")
+
+	// Encrypt with the correct password
+	cipherText, err := encipher.Encrypt(plainText)
+	if err != nil {
+		t.Fatalf("Encryption failed: %v", err)
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cipherOut, err := Encrypt(tt.args.plainIn, tt.args.password)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Encrypt() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			gotCipherText := base64.StdEncoding.EncodeToString(cipherOut)
-			t.Logf("gotCipherText = %v", gotCipherText)
-		})
+
+	// Create a new encipher with the wrong password
+	wrongEncipher, err := NewEncipher(wrongPassword)
+	if err != nil {
+		t.Fatalf("Failed to create encipher with wrong password: %v", err)
+	}
+
+	// Try to decrypt with the wrong password, expecting an error
+	_, err = wrongEncipher.Decrypt(cipherText)
+	if err == nil {
+		t.Error("Expected decryption to fail with wrong password, but it succeeded.")
 	}
 }

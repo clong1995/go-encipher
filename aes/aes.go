@@ -10,65 +10,53 @@ import (
 	"github.com/pkg/errors"
 )
 
-// DeriveKey insecurely turns a password of any length into a 32-byte AES key (AES-256).
-// WARNING: This is not a secure Key Derivation Function (KDF).
-// If the password is user-supplied, use a strong KDF like scrypt or Argon2 instead.
-func DeriveKey(password []byte) []byte {
+// Encipher 持有用于加密和解密的 AEAD 实例。
+type Encipher struct {
+	aead cipher.AEAD
+}
+
+// NewEncipher 使用给定的密码创建一个新的 Encipher 实例。
+func NewEncipher(password []byte) (*Encipher, error) {
+	key := deriveKey(password)
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, errors.Wrap(err, "创建新的密码块失败")
+	}
+	aead, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, errors.Wrap(err, "创建新的 GCM 失败")
+	}
+	return &Encipher{aead: aead}, nil
+}
+
+// Encrypt 使用预先计算的 AEAD 实例加密数据。
+func (e *Encipher) Encrypt(plainIn []byte) ([]byte, error) {
+	nonce := make([]byte, e.aead.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		return nil, errors.Wrap(err, "读取 nonce 失败")
+	}
+	cipherByte := e.aead.Seal(nil, nonce, plainIn, nil)
+	return append(nonce, cipherByte...), nil
+}
+
+// Decrypt 使用预先计算的 AEAD 实例解密数据。
+func (e *Encipher) Decrypt(encodedIn []byte) ([]byte, error) {
+	nonceSize := e.aead.NonceSize()
+	if len(encodedIn) < nonceSize {
+		return nil, errors.New("密文太短")
+	}
+	nonce, cipherText := encodedIn[:nonceSize], encodedIn[nonceSize:]
+	plainOut, err := e.aead.Open(nil, nonce, cipherText, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "打开密文失败")
+	}
+	return plainOut, nil
+}
+
+// deriveKey 将任意长度的密码不安全地转换为 32 字节的 AES 密钥 (AES-256)。
+// 警告：这不是一个安全的密钥派生函数 (KDF)。
+// 如果密码由用户提供，请改用像 scrypt 或 Argon2 这样的强 KDF。
+func deriveKey(password []byte) []byte {
 	sum := sha256.Sum256(password)
 	return sum[:]
-}
-
-// Encrypt encrypts data using AES-GCM and returns the nonce prepended to the ciphertext.
-func Encrypt(plainIn, password []byte) ([]byte, error) {
-	key := DeriveKey(password)
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create new cipher")
-	}
-	aead, err := cipher.NewGCM(block)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create new GCM")
-	}
-
-	nonce := make([]byte, aead.NonceSize())
-	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-		return nil, errors.Wrap(err, "failed to read nonce")
-	}
-
-	cipherByte := aead.Seal(nil, nonce, plainIn, nil)
-	cipherOut := append(nonce, cipherByte...)
-	return cipherOut, nil
-}
-
-// Decrypt decrypts data (nonce|ciphertext) that was encrypted with Encrypt.
-func Decrypt(encodedIn []byte, password []byte) ([]byte, error) {
-	/*data, err := base64.StdEncoding.DecodeString(encoded)
-	if err != nil {
-		log.Println(err)
-		return
-	}*/
-
-	key := DeriveKey(password)
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create new cipher")
-	}
-	aead, err := cipher.NewGCM(block)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create new GCM")
-	}
-
-	nonceSize := aead.NonceSize()
-	if len(encodedIn) < nonceSize {
-		return nil, errors.New("ciphertext too short")
-	}
-
-	nonce, cipherText := encodedIn[:nonceSize], encodedIn[nonceSize:]
-	plainOut, err := aead.Open(nil, nonce, cipherText, nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to open cipher text")
-	}
-
-	return plainOut, nil
 }

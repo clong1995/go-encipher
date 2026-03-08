@@ -7,16 +7,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Decode reads the next JSON-encoded value from its input and stores it in the value pointed to by v.
-// Decode 解码json
-// data 二进制数据
-// out 接收结果的指针
-// bytes.NewBuffer(encoderData) 可以将encoderData二进制转流
-// 将 r *http.Request reader,可直接解http请求流
-func Decode(reader io.Reader, out any) error {
+// Decode 从输入中读取下一个 JSON 编码的值，并将其存储在 v 指向的值中。
+func Decode(reader io.Reader, v any) error {
 	decoder := json.NewDecoder(reader)
-	if err := decoder.Decode(out); err != nil && err != io.EOF {
-		return errors.Wrap(err, "json decode failed")
+	if err := decoder.Decode(v); err != nil && err != io.EOF {
+		return errors.Wrap(err, "json 解码失败")
 	}
 	return nil
 }
