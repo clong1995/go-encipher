@@ -43,3 +43,8 @@ func TestGob_DecodeFailsWithInvalidInput(t *testing.T) {
 		t.Error("Expected decoding to fail with invalid input, but it succeeded.")
 	}
 }
+
+type student struct {
+	Name string
+	Age  int
+}
