@@ -13,7 +13,7 @@ func Encode(v any, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	encoder.SetEscapeHTML(false)
 	if err := encoder.Encode(v); err != nil {
-		return errors.Wrap(err, "json 编码失败")
+		return errors.WithStack(err)
 	}
 	return nil
 }

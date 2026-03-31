@@ -20,11 +20,11 @@ func NewEncipher(password []byte) (*Encipher, error) {
 	key := deriveKey(password)
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, errors.Wrap(err, "创建新的密码块失败")
+		return nil, errors.WithStack(err)
 	}
 	aead, err := cipher.NewGCM(block)
 	if err != nil {
-		return nil, errors.Wrap(err, "创建新的 GCM 失败")
+		return nil, errors.WithStack(err)
 	}
 	return &Encipher{aead: aead}, nil
 }
@@ -33,7 +33,7 @@ func NewEncipher(password []byte) (*Encipher, error) {
 func (e *Encipher) Encrypt(plainIn []byte) ([]byte, error) {
 	nonce := make([]byte, e.aead.NonceSize())
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		return nil, errors.Wrap(err, "读取 nonce 失败")
+		return nil, errors.WithStack(err)
 	}
 	cipherByte := e.aead.Seal(nil, nonce, plainIn, nil)
 	return append(nonce, cipherByte...), nil
@@ -48,7 +48,7 @@ func (e *Encipher) Decrypt(encodedIn []byte) ([]byte, error) {
 	nonce, cipherText := encodedIn[:nonceSize], encodedIn[nonceSize:]
 	plainOut, err := e.aead.Open(nil, nonce, cipherText, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "打开密文失败")
+		return nil, errors.WithStack(err)
 	}
 	return plainOut, nil
 }

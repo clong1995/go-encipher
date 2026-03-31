@@ -11,7 +11,7 @@ import (
 func Decode(reader io.Reader, v any) error {
 	decoder := json.NewDecoder(reader)
 	if err := decoder.Decode(v); err != nil && err != io.EOF {
-		return errors.Wrap(err, "json 解码失败")
+		return errors.WithStack(err)
 	}
 	return nil
 }

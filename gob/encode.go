@@ -12,7 +12,7 @@ import (
 func Encode(v any, writer io.Writer) error {
 	encoder := gob.NewEncoder(writer)
 	if err := encoder.Encode(v); err != nil {
-		return errors.Wrap(err, "gob 编码失败")
+		return errors.WithStack(err)
 	}
 	return nil
 }
