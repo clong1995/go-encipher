@@ -2,8 +2,9 @@ package codec
 
 import (
 	"crypto/rand"
-	"errors"
 	"math/big"
+
+	"github.com/pkg/errors"
 )
 
 const (
@@ -12,8 +13,6 @@ const (
 )
 
 var (
-	errInvalidBase = errors.New("invalid codec string")
-
 	codecDecodeTable = func() [256]byte {
 		var table [256]byte
 		for i := range table {
@@ -38,7 +37,7 @@ func xor(data, key []byte) {
 	}
 }
 
-// Base62 编码
+// Base 编码
 func codecEncode(data []byte) string {
 	if len(data) == 0 {
 		return ""
@@ -76,7 +75,7 @@ func codecEncode(data []byte) string {
 	return string(result)
 }
 
-// Base62 解码
+// Base 解码
 func codecDecode(str string) ([]byte, error) {
 	if len(str) == 0 {
 		return []byte{}, nil
@@ -95,7 +94,7 @@ func codecDecode(str string) ([]byte, error) {
 	for i := 0; i < len(str); i++ {
 		v := codecDecodeTable[str[i]]
 		if v == 0xFF {
-			return nil, errInvalidBase
+			return nil, errors.New("codec decode err")
 		}
 
 		n.Mul(&n, codecBase)
@@ -115,7 +114,7 @@ func Encode(data []byte) (string, error) {
 	// 生成随机 nonce
 	nonce := make([]byte, codecNonceSize)
 	if _, err := rand.Read(nonce); err != nil {
-		return "", err
+		return "", errors.WithStack(err)
 	}
 
 	// 复制原始数据
@@ -140,7 +139,7 @@ func Decode(str string) ([]byte, error) {
 	}
 
 	if len(data) < codecNonceSize {
-		return nil, errInvalidBase
+		return nil, errors.New("decode err")
 	}
 
 	// 提取 nonce
