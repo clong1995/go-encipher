@@ -39,7 +39,7 @@ func xor(data, key []byte) {
 }
 
 // Base62 编码
-func base62Encode(data []byte) string {
+func codecEncode(data []byte) string {
 	if len(data) == 0 {
 		return ""
 	}
@@ -77,7 +77,7 @@ func base62Encode(data []byte) string {
 }
 
 // Base62 解码
-func base62Decode(str string) ([]byte, error) {
+func codecDecode(str string) ([]byte, error) {
 	if len(str) == 0 {
 		return []byte{}, nil
 	}
@@ -111,7 +111,7 @@ func base62Decode(str string) ([]byte, error) {
 }
 
 // 混淆编码
-func codecEncode(data []byte) (string, error) {
+func Encode(data []byte) (string, error) {
 	// 生成随机 nonce
 	nonce := make([]byte, codecNonceSize)
 	if _, err := rand.Read(nonce); err != nil {
@@ -129,12 +129,12 @@ func codecEncode(data []byte) (string, error) {
 	copy(out[len(data):], nonce)
 
 	// Base62
-	return base62Encode(out), nil
+	return codecEncode(out), nil
 }
 
 // 混淆解码
-func codecDecode(str string) ([]byte, error) {
-	data, err := base62Decode(str)
+func Decode(str string) ([]byte, error) {
+	data, err := codecDecode(str)
 	if err != nil {
 		return nil, err
 	}
